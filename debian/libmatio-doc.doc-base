@@ -1,0 +1,11 @@
+Document: libmatio-manual
+Title: MATIO User Manual
+Author: Christopher C. Hulbert
+Section: Programming
+
+Format: HTML
+Files: /usr/share/doc/libmatio-dev/matio_user_guide.html
+Index: /usr/share/doc/libmatio-dev/matio_user_guide.html
+
+Format: PDF
+Files: /usr/share/doc/libmatio-dev/matio_user_guide.pdf

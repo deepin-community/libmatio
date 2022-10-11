@@ -1,0 +1,28 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/default.mk
+
+ifneq ($(wildcard /usr/lib/$(DEB_HOST_MULTIARCH)/hdf5/serial/libhdf5.so),)
+  WITH_HDF5:=--with-hdf5=/usr/lib/$(DEB_HOST_MULTIARCH)/hdf5/serial
+else
+  WITH_HDF5:=--with-hdf5
+endif
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure -- $(WITH_HDF5)
+
+execute_after_dh_auto_build:
+ifeq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
+	make -C documentation pdf html MAKEINFOFLAGS=--no-split
+endif
+
+execute_after_dh_auto_clean:
+	rm -f documentation/matio_user_guide.pdf documentation/matio_user_guide.html \
+		test/atconfig test/package.m4 test/testsuite
+	rm -rf documentation/matio_user_guide.t2p/
+
+override_dh_compress:
+	dh_compress -X.pdf

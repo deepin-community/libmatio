@@ -1,0 +1,424 @@
+libmatio (1.5.21-1) unstable; urgency=medium
+
+  * New upstream version 1.5.21
+  * d/copyright: reflect upstream changes
+  * Bump S-V to 4.6.0
+  * Add d/upstream/metadata
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sun, 22 Aug 2021 21:45:48 +0200
+
+libmatio (1.5.19-2) unstable; urgency=medium
+
+  * Upload to unstable
+  * Bump S-V to 4.5.1
+
+ -- Sébastien Villemot <sebastien@debian.org>  Thu, 19 Nov 2020 14:50:01 +0100
+
+libmatio (1.5.19-1) experimental; urgency=medium
+
+  * New upstream version 1.5.19
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sat, 14 Nov 2020 15:38:21 +0100
+
+libmatio (1.5.18-1) experimental; urgency=medium
+
+  * New upstream version 1.5.18
+    Fixes CVE-2019-20017, CVE-2019-20018, CVE-2019-20020, CVE-2019-20052
+  * d/copyright: reflect upstream changes
+  * Drop patches applied upstream:
+    + CVE-2019-17533.patch
+    + big-endian.patch
+  * SONAME bump: the shared library package is now libmatio11
+
+ -- Sébastien Villemot <sebastien@debian.org>  Tue, 22 Sep 2020 14:15:12 +0200
+
+libmatio (1.5.17-5) unstable; urgency=medium
+
+  * Source-only upload, since the previous upload was targeted to NEW
+  * Trim trailing whitespace.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Mon, 13 Jul 2020 17:18:23 +0200
+
+libmatio (1.5.17-4) unstable; urgency=medium
+
+  * Ship HTML version of manual
+  * d/rules: simplify using debhelper 12.8’s execute_after_* rules
+  * Ship matdump utility in a new matio-tools package
+  * Bump to debhelper 13
+  * Use secure URL for Homepage
+  * Bump to S-V 4.5.0
+  * CVE-2019-17533.patch: new patch, fixes CVE-2019-17533 (Closes: #942255)
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sat, 13 Jun 2020 09:50:35 +0200
+
+libmatio (1.5.17-3) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Sébastien Villemot <sebastien@debian.org>  Mon, 23 Sep 2019 23:23:34 +0200
+
+libmatio (1.5.17-2) experimental; urgency=medium
+
+  * big-endian.patch: new patch, fixes FTBFS on big-endian archs
+
+ -- Sébastien Villemot <sebastien@debian.org>  Tue, 20 Aug 2019 15:27:44 +0200
+
+libmatio (1.5.17-1) experimental; urgency=medium
+
+  * New upstream version 1.5.17
+  * Bump to S-V 4.4.0
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sun, 21 Jul 2019 23:38:59 +0200
+
+libmatio (1.5.16-1) experimental; urgency=medium
+
+  * New upstream version 1.5.16
+    Fixes CVE-2019-13107 (Closes: #931323)
+  * d/copyright: reflect upstream changes
+  * Drop patches applied upstream
+    + avoid-int-mult-overflow.patch
+    + fix-printing-vars-from-mat-v5.patch
+    + fix-reading-vars-from-mat-v5.patch
+  * SONAME bump: the shared library package is now libmatio9
+  * Bump to debhelper compat level 12
+  * Bump S-V to 4.3.0
+
+ -- Sébastien Villemot <sebastien@debian.org>  Tue, 02 Jul 2019 12:31:25 +0200
+
+libmatio (1.5.13-3) unstable; urgency=medium
+
+  * fix-reading-vars-from-mat-v5.patch: fix regression in testsuite.
+    Update this patch by backporting another upstream commit. Fixes test
+    failures on some archs.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sat, 23 Mar 2019 10:14:40 +0100
+
+libmatio (1.5.13-2) unstable; urgency=medium
+
+  * Fix security issues
+    + fix-reading-vars-from-mat-v5.patch: new patch backported from upstream.
+      Fixes CVE-2019-9026, CVE-2019-9027, CVE-2019-9028, CVE-2019-9029,
+       CVE-2019-9030, CVE-2019-9031, CVE-2019-9032, CVE-2019-9033,
+       CVE-2019-9034, CVE-2019-9035, CVE-2019-9038.
+    + fix-printing-vars-from-mat-v5.patch: new patch backported from upstream.
+      Fixes CVE-2019-9037.
+    + avoid-int-mult-overflow.patch: new patch backported from upstream.
+      Fixes CVE-2019-9036.
+    + d/copyright: mention two files added by the latest patch.
+    (Closes: #924185)
+
+ -- Sébastien Villemot <sebastien@debian.org>  Fri, 22 Mar 2019 11:46:25 +0100
+
+libmatio (1.5.13-1) unstable; urgency=medium
+
+  * New upstream version 1.5.13
+  * Add Rules-Requires-Root: no
+  * Use new way of specifying debhelper compat level
+  * Bump S-V to 4.2.1
+  * Add Build-Depends-Package field in symbols file
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sat, 27 Oct 2018 09:08:25 +0200
+
+libmatio (1.5.12-2) unstable; urgency=medium
+
+  * libmatio-doc now Breaks+Replaces libmatio-dev (<< 1.5.10-1~).
+    The NEWS and README were moved from libmatio-dev to libmatio-doc in
+    release 1.5.10-1. Then, in release 1.5.12-1, the bump to debhelper 11,
+    while keeping them inside the libmatio-doc package, moved them back to
+    /u/s/d/libmatio-dev/ on the filesystem. (Closes: #892874)
+
+ -- Sébastien Villemot <sebastien@debian.org>  Wed, 14 Mar 2018 10:11:31 +0100
+
+libmatio (1.5.12-1) unstable; urgency=medium
+
+  * New upstream version 1.5.12
+  * d/copyright: reflect upstream changes.
+  * Bump to debhelper compat level 11.
+    Incidentally, PDF documentation now installed under
+    /usr/share/doc/libmatio-dev.
+  * Update Vcs-* URLs for move to salsa.
+  * Bump Standards-Version to 4.1.3.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Tue, 13 Mar 2018 10:17:26 +0100
+
+libmatio (1.5.11-1) unstable; urgency=medium
+
+  * New upstream version 1.5.11
+  * d/rules: add option -V to dh_makeshlibs.
+  * Bump libmatio-doc to priority optional (since extra is deprecated).
+  * manpage-errors.patch: drop patch, applied upstream.
+  * Bump Standards-Version to 4.1.1.
+  * Add Mat_VarWriteAppend in symbols file.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Wed, 25 Oct 2017 22:54:39 +0200
+
+libmatio (1.5.10-1) unstable; urgency=medium
+
+  * New upstream version 1.5.10
+  * d/copyright:
+    + reflect upstream changes.
+    + use secure URL for format.
+  * d/p/manpage-errors.patch: new patch, fixes errors in manpages.
+  * d/libmatio4.symbols: add Mat_GetDir.
+  * d/source/options: ignore file modified by testsuite.
+  * d/watch:
+    + allow for double-digit minor version number.
+    + bump to format version 4.
+  * d/control:
+    + use canonical URL for Vcs-Browser.
+    + improve description of libmatio-doc.
+    + libmatio-dev now suggests libmatio-doc.
+    + mark libmatio-doc as M-A foreign.
+    + bump to Standards-Version 4.0.0.
+  * Move README and NEWS to libmatio-doc.
+  * d/rules: add support for nodoc flag in DEB_BUILD_OPTIONS.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sun, 23 Jul 2017 18:24:41 +0200
+
+libmatio (1.5.9-1) unstable; urgency=medium
+
+  * New upstream version 1.5.9
+  * Bump to debhelper compat level 10.
+  * d/control: update package descriptions.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sat, 22 Oct 2016 22:00:39 +0200
+
+libmatio (1.5.8-1) unstable; urgency=medium
+
+  * Imported Upstream version 1.5.8.
+    Fixes FTBFS on big endian archs.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Thu, 07 Jul 2016 00:15:39 +0200
+
+libmatio (1.5.7-1) unstable; urgency=medium
+
+  * Imported Upstream version 1.5.7
+  * Bump Standards-Version to 3.9.8, no changes needed.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sun, 26 Jun 2016 20:30:53 +0200
+
+libmatio (1.5.6-2) unstable; urgency=low
+
+  * Release to unstable.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Wed, 24 Feb 2016 19:55:18 +0100
+
+libmatio (1.5.6-1) experimental; urgency=low
+
+  * Imported Upstream version 1.5.6.
+    Fixes FTBFS on armhf, powerpc and s390x.
+  * ldflags.patch: drop patch, applied upstream.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Tue, 23 Feb 2016 20:40:13 +0100
+
+libmatio (1.5.4-1) experimental; urgency=low
+
+  * Imported Upstream version 1.5.4
+  * d/copyright: reflect upstream changes.
+  * SONAME bump: the shared library package is now libmatio4.
+  * d/p/ldflags.patch: new patch, fixes a build system bug.
+  * d/control: use secure URLs for Vcs-*.
+  * Bump Standards-Version to 3.9.7, no changes needed.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Fri, 19 Feb 2016 21:06:14 +0100
+
+libmatio (1.5.3-1) unstable; urgency=medium
+
+  * New upstream release.
+  * d/copyright: reflect upstream changes.
+  * d/rules: migrate from cdbs to dh.
+  * Add symbols file for libmatio2.
+  * Drop libmatio2-dbg, use instead automatic debug packages.
+  * Add missing manpages to libmatio-doc.
+  * Bump Standards-Version to 3.9.6, no changes needed.
+  * Move the packaging to git.
+  * No longer B-D on gfortran, not used.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sat, 16 Jan 2016 21:07:04 +0100
+
+libmatio (1.5.2-3) unstable; urgency=medium
+
+  * Team upload.
+  * Support hdf5 1.8.13 new packaging layout (closes: #756675).
+
+ -- Gilles Filippini <pini@debian.org>  Sat, 02 Aug 2014 11:02:07 +0200
+
+libmatio (1.5.2-2) unstable; urgency=medium
+
+  * Use plain dh-autoreconf. (Closes: #753521)
+  * Remove Sylvestre Ledru from Uploaders. Thanks Sylvestre for your work!
+  * debian/control: use canonical URLs for Vcs-* fields.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Tue, 15 Jul 2014 18:06:35 +0200
+
+libmatio (1.5.2-1) unstable; urgency=low
+
+  * New upstream release.
+  * Add myself to Uploaders.
+  * Rewrite debian/copyright using machine-readable format 1.0.
+  * Bump Standards-Version to 3.9.5, no changes needed.
+  * Bump to debhelper compat level 9.
+  * Register the PDF manual in doc-base.
+  * Multi-archify the package.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sun, 24 Nov 2013 14:29:48 +0100
+
+libmatio (1.5.1-1) unstable; urgency=low
+
+  * Upload to unstable
+  * Standards-Version updated to 3.9.4
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Tue, 28 May 2013 12:10:00 +0200
+
+libmatio (1.5.1-1~exp1) experimental; urgency=low
+
+  [ Sébastien Villemot ]
+  * debian/rules: add -lhdf5 to libmatio_la_LIBADD, so that libmatio2
+    depends on libhdf5-7
+  * debian/control: add missing dep of libmatio-dev on libhdf5-dev
+  * Make sure that the package builds twice in a row:
+    + Manually clean documentation/matio_user_guide.pdf and test/atconfig
+    + Wrap call to autogen.sh using dh-autoreconf
+
+  [ Sylvestre Ledru ]
+  * New upstream release
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Sun, 17 Mar 2013 11:08:56 +0100
+
+libmatio (1.5.0-1~exp1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Sun, 15 Apr 2012 23:52:55 +0200
+
+libmatio (1.5.0~b1-1~exp1) experimental; urgency=low
+
+  * New (official) upstream release
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Sun, 15 Apr 2012 23:52:35 +0200
+
+libmatio (1.5.0~2012-03-13~8e32cbf07b-1~exp1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Tue, 13 Mar 2012 14:22:40 +0100
+
+libmatio (1.5.0~2012-03-11~cbab52f6e-1~exp2) experimental; urgency=low
+
+  * Enable HDF-5 & fortran based features
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Sun, 11 Mar 2012 17:31:39 +0100
+
+libmatio (1.5.0~2012-03-11~cbab52f6e-1~exp1) experimental; urgency=low
+
+  * New upstream release (from the git repository)
+  * Standards-Version updated to version 3.9.3
+  * libmatio0 renamed to libmatio2
+  * doxygen.patch patch removed
+  * doxygen removed for texinfo + manpages
+  * Switch to dpkg-source 3.0 (quilt) format
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Sun, 11 Mar 2012 10:58:48 +0100
+
+libmatio (1.3.4-3) unstable; urgency=low
+
+  * Standards-Version updated to version 3.9.2
+  * Use doxygen-latex instead of texlive-* packages
+    (Closes: #616257, #634551)
+  * No longer install .la files
+  * Fix description-synopsis-starts-with-article
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Thu, 11 Aug 2011 23:48:36 +0200
+
+libmatio (1.3.4-2) unstable; urgency=low
+
+  * Fix FTBFS regarding latex build. Thanks to Julien Cristau (Closes: #590415)
+  * Update autotools code to build against recent versions
+    (autotools-new-version.patch)
+  * Standards-Version updated to version 3.9.1
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Fri, 03 Sep 2010 10:01:39 +0200
+
+libmatio (1.3.4-1) unstable; urgency=low
+
+  * New upstream release
+  * catcherror.diff read-size-issue.diff sparsecomplexmatrices.diff removed
+    (applied upstream)
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Tue, 30 Mar 2010 17:00:24 +0200
+
+libmatio (1.3.3-7) unstable; urgency=low
+
+  * Uses ghostscript-x instead of gs-gpl
+
+  [ Vincent Couvert from Scilab ]
+  * Fix a compression read size issues. read-size-issue.diff (Closes: #556652)
+  * Fix a bug in the sparse complex matrices handling.
+    sparsecomplexmatrices.diff
+  * Improves feedback when cannot read a mat file. catcherror.diff
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Wed, 03 Mar 2010 10:35:05 +0100
+
+libmatio (1.3.3-6) unstable; urgency=low
+
+  * texlive-latex-recommended was missing as a Build-Depends. Thanks to
+    Michael Bienia for providing a fix (Closes: #551250)
+  * Build-Depends gs => gs-gpl
+  * Standards-Version updated to 3.8.4
+  * libmatio-doc moved to section doc and libmatio0-dbg to debug
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Mon, 01 Feb 2010 13:08:00 +0100
+
+libmatio (1.3.3-5) unstable; urgency=low
+
+  * Build the documentation in the new package libmatio-doc (Closes: #545946)
+  * Change of my email address since I am now DD
+  * Removal of Torsten on his request
+  * Standards-Version updated to 3.8.3
+  * DM-Upload-Allowed removed
+
+ -- Sylvestre Ledru <sylvestre@debian.org>  Thu, 10 Sep 2009 16:32:05 +0200
+
+libmatio (1.3.3-4) unstable; urgency=low
+
+  * Missing ${misc:Depends} added
+
+ -- Sylvestre Ledru <sylvestre.ledru@inria.fr>  Sun, 28 Dec 2008 18:17:06 +0100
+
+libmatio (1.3.3-3) unstable; urgency=low
+
+  * Debian-science added as maintainer
+  * SVN moved to debian-science repository
+
+ -- Sylvestre Ledru <sylvestre.ledru@inria.fr>  Tue, 26 Aug 2008 23:46:07 +0200
+
+libmatio (1.3.3-2) unstable; urgency=low
+
+  * Change Standards-Version: 3.8.0
+
+ -- Sylvestre Ledru <sylvestre.ledru@inria.fr>  Sun, 29 Jun 2008 20:31:00 +0200
+
+
+libmatio (1.3.3-1) unstable; urgency=low
+
+  * New upstream version
+  * copyright file update since fixed by the upstream.
+
+ -- Sylvestre Ledru <sylvestre.ledru@inria.fr>  Tue, 24 Jun 2008 13:09:39 +0200
+
+libmatio (1.3.2-2) unstable; urgency=low
+
+  [ Torsten Werner ]
+  * Add DM-Upload-Allowed: yes to enable uploads by Sylvestre.
+
+  [ Sylvestre Ledru ]
+  * copyright file updated (a few files have a different license. Will be
+    fixed in the next release).
+
+ -- Torsten Werner <twerner@debian.org>  Tue, 29 Apr 2008 20:38:40 +0200
+
+libmatio (1.3.2-1) unstable; urgency=low
+
+  * Initial release (Closes: #476346)
+
+ -- Sylvestre Ledru <sylvestre.ledru@inria.fr>  Tue, 15 Apr 2008 13:47:14 +0200

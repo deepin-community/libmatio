@@ -1,0 +1,66 @@
+Source: libmatio
+Maintainer: Debian Science Team <debian-science-maintainers@lists.alioth.debian.org>
+Uploaders: Sébastien Villemot <sebastien@debian.org>
+Section: libs
+Priority: optional
+Build-Depends: debhelper-compat (= 13),
+               debhelper (>= 12.8~),
+               zlib1g-dev,
+               texinfo,
+               texlive,
+               libhdf5-dev
+Standards-Version: 4.6.0
+Vcs-Browser: https://salsa.debian.org/science-team/libmatio
+Vcs-Git: https://salsa.debian.org/science-team/libmatio.git
+Homepage: https://sourceforge.net/projects/matio
+Rules-Requires-Root: no
+
+Package: libmatio-dev
+Architecture: any
+Multi-Arch: same
+Section: libdevel
+Depends: ${misc:Depends},
+         libmatio11 (= ${binary:Version}),
+         zlib1g-dev,
+         libhdf5-dev
+Suggests: libmatio-doc
+Description: MATLAB MAT File I/O Library - development files
+ matio is a C library for reading and writing MATLAB MAT files.
+ .
+ This package contains the development files needed to compile software to
+ use the libmatio API.
+
+Package: libmatio11
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Description: MATLAB MAT File I/O Library - shared library
+ matio is a C library for reading and writing MATLAB MAT files.
+ .
+ This package contains the shared version of the library.
+
+Package: libmatio-doc
+Architecture: all
+Multi-Arch: foreign
+Section: doc
+Depends: ${misc:Depends}
+Breaks: libmatio-dev (<< 1.5.10-1~)
+Replaces: libmatio-dev (<< 1.5.10-1~)
+Description: MATLAB MAT File I/O Library - documentation files
+ matio is a C library for reading and writing MATLAB MAT files.
+ .
+ This package contains the documentation of the library (HTML, PDF and
+ manpages).
+
+Package: matio-tools
+Architecture: any
+Section: math
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: MATLAB MAT File I/O Library - command-line tools
+ matio is a C library for reading and writing MATLAB MAT files.
+ .
+ This package contains a command-line tool, matdump, that can provide a
+ human-readable list of the variables stored in a MATLAB MAT file.
