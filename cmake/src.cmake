@@ -20,8 +20,8 @@ set(MATIO_SOURCES
     ${PROJECT_SOURCE_DIR}/src/matvar_struct.c
     ${PROJECT_SOURCE_DIR}/src/mat4.c
     ${PROJECT_SOURCE_DIR}/src/mat5.c
-    ${PROJECT_SOURCE_DIR}/src/snprintf.c
     ${PROJECT_SOURCE_DIR}/src/read_data.c
+    ${PROJECT_SOURCE_DIR}/snprintf/snprintf.c
     ${PROJECT_SOURCE_DIR}/src/mat5.h
     ${PROJECT_SOURCE_DIR}/src/mat73.h
     ${PROJECT_SOURCE_DIR}/src/matio_private.h
@@ -29,16 +29,27 @@ set(MATIO_SOURCES
     ${PROJECT_SOURCE_DIR}/src/matio.h
     ${PROJECT_SOURCE_DIR}/visual_studio/matio.rc
     ${PROJECT_SOURCE_DIR}/visual_studio/matio.def
+    ${PROJECT_SOURCE_DIR}/src/read_data_impl.h
+    ${PROJECT_SOURCE_DIR}/src/safe-math.h
     ${PROJECT_BINARY_DIR}/src/matio_pubconf.h
     ${PROJECT_BINARY_DIR}/src/matioConfig.h
 )
+
 if(STDINT_MSVC)
     set(MATIO_SOURCES ${MATIO_SOURCES} ${PROJECT_SOURCE_DIR}/visual_studio/stdint_msvc.h)
 endif()
 
-if(NOT MSVC)
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--retain-symbols-file,${PROJECT_SOURCE_DIR}/src/matio.sym")
+if(USE_GNU_LINK_FLAGS OR USE_LLVM_MACOS_LINK_FLAGS)
+    file(COPY "${PROJECT_SOURCE_DIR}/src/matio.sym" DESTINATION "${PROJECT_BINARY_DIR}/src")
+    if(USE_GNU_LINK_FLAGS)
+        set(MATIO_LINKER_FLAGS " -Wl,--no-undefined -Wl,--retain-symbols-file,${PROJECT_BINARY_DIR}/src/matio.sym")
+    else()
+        file(READ "${PROJECT_BINARY_DIR}/src/matio.sym" SYM_CONTENTS)
+        string(REPLACE "Mat_" "_Mat_" SYM_CONTENTS ${SYM_CONTENTS})
+        file(WRITE "${PROJECT_BINARY_DIR}/src/matio.sym" ${SYM_CONTENTS})
+        set(MATIO_LINKER_FLAGS " -Wl,-undefined,error -Wl,-exported_symbols_list,${PROJECT_BINARY_DIR}/src/matio.sym")
+    endif()
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS ${MATIO_LINKER_FLAGS})
 endif()
 
 if(MATIO_SHARED)
@@ -61,6 +72,7 @@ if(HAVE_LIBM)
 endif()
 
 if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS /wd4267)
     set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME lib${PROJECT_NAME})
 endif()
 
@@ -72,22 +84,21 @@ if(ZLIB_FOUND)
     target_link_libraries(${PROJECT_NAME} PUBLIC MATIO::ZLIB)
 endif()
 
-set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ${MATIO_PIC})
-if(MATIO_SHARED)
-    # Convert matio_LIB_VERSIONINFO libtool version format into VERSION and SOVERSION
-    # Convert from ":" separated into CMake list format using ";"
-    string(REPLACE ":" ";" matio_LIB_VERSIONINFO ${matio_LIB_VERSIONINFO})
-    list(GET matio_LIB_VERSIONINFO 0 matio_LIB_VERSION_CURRENT)
-    list(GET matio_LIB_VERSIONINFO 1 matio_LIB_VERSION_REVISION)
-    list(GET matio_LIB_VERSIONINFO 2 matio_LIB_VERSION_AGE)
-    math(EXPR matio_LIB_VERSION_MAJOR "${matio_LIB_VERSION_CURRENT} - ${matio_LIB_VERSION_AGE}")
-    set(matio_LIB_VERSION_MINOR "${matio_LIB_VERSION_AGE}")
-    set(matio_LIB_VERSION_RELEASE "${matio_LIB_VERSION_REVISION}")
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        SOVERSION ${matio_LIB_VERSION_MAJOR}
-        VERSION "${matio_LIB_VERSION_MAJOR}.${matio_LIB_VERSION_MINOR}.${matio_LIB_VERSION_RELEASE}"
-    )
+if(REQUIRE_EXPLICIT_LIBC_LINK)
+    target_link_libraries(${PROJECT_NAME} PUBLIC c)
 endif()
+
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ${MATIO_PIC})
+# Convert matio_LIB_VERSIONINFO libtool version format into SOVERSION
+# Convert from ":" separated into CMake list format using ";"
+string(REPLACE ":" ";" matio_LIB_VERSIONINFO ${matio_LIB_VERSIONINFO})
+list(GET matio_LIB_VERSIONINFO 0 matio_LIB_VERSION_CURRENT)
+list(GET matio_LIB_VERSIONINFO 2 matio_LIB_VERSION_AGE)
+math(EXPR matio_SOVERSION "${matio_LIB_VERSION_CURRENT} - ${matio_LIB_VERSION_AGE}")
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    SOVERSION ${matio_SOVERSION}
+    VERSION ${PROJECT_VERSION}
+)
 
 # specify the public headers
 set(MATIO_PUBLIC_HEADERS

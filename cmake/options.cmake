@@ -29,10 +29,22 @@ set_property(CACHE MATIO_DEFAULT_FILE_VERSION PROPERTY STRINGS 4 5 7.3)
 
 if(MATIO_DEFAULT_FILE_VERSION STREQUAL "4")
     set(MAT_FT_DEFAULT MAT_FT_MAT4)
-elseif (MATIO_DEFAULT_FILE_VERSION STREQUAL "5")
+elseif(MATIO_DEFAULT_FILE_VERSION STREQUAL "5")
     set(MAT_FT_DEFAULT MAT_FT_MAT5)
-elseif (MATIO_DEFAULT_FILE_VERSION STREQUAL "7.3")
+elseif(MATIO_DEFAULT_FILE_VERSION STREQUAL "7.3")
     set(MAT_FT_DEFAULT MAT_FT_MAT73)
 else()
     message(ERROR "Unrecognized MAT file version")
+endif()
+
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.10")
+    option(MATIO_ENABLE_CPPCHECK "Enable static analysis with Cppcheck." OFF)
+endif()
+
+# Option to enable matio testsuite
+option(MATIO_BUILD_TESTING "Build matio testing" ON)
+
+set(BUILD_TESTING OFF)
+if (MATIO_BUILD_TESTING)
+    set(BUILD_TESTING ON)
 endif()

@@ -3,7 +3,8 @@
  * @ingroup MAT
  */
 /*
- * Copyright (c) 2005-2021, Christopher C. Hulbert
+ * Copyright (c) 2015-2024, The matio contributors
+ * Copyright (c) 2005-2014, Christopher C. Hulbert
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,14 +56,16 @@
 mat_t *
 Mat_Create4(const char *matname)
 {
-    FILE *fp = NULL;
+    FILE *fp;
     mat_t *mat = NULL;
 
-#if defined(_WIN32) && defined(_MSC_VER)
+#if defined(_WIN32)
     wchar_t *wname = utf82u(matname);
     if ( NULL != wname ) {
         fp = _wfopen(wname, L"w+b");
         free(wname);
+    } else {
+        fp = NULL;
     }
 #else
     fp = fopen(matname, "w+b");
@@ -81,9 +84,9 @@ Mat_Create4(const char *matname)
     mat->header = NULL;
     mat->subsys_offset = NULL;
     mat->filename = strdup(matname);
-    mat->version = MAT_FT_MAT4;
+    mat->version = 0x0010;
     mat->byteswap = 0;
-    mat->mode = 0;
+    mat->mode = MAT_ACC_RDWR;
     mat->bof = 0;
     mat->next_index = 0;
     mat->num_datasets = 0;
@@ -107,8 +110,9 @@ Mat_Create4(const char *matname)
  * @endif
  */
 int
-Mat_VarWrite4(mat_t *mat, matvar_t *matvar)
+Mat_VarWrite4(const mat_t *mat, const matvar_t *matvar)
 {
+#if defined(MATIO_LE) || defined(MATIO_BE)
     typedef struct
     {
         mat_int32_t type;
@@ -118,13 +122,17 @@ Mat_VarWrite4(mat_t *mat, matvar_t *matvar)
         mat_int32_t namelen;
     } Fmatrix;
 
-    mat_uint32_t i;
     Fmatrix x;
 
     if ( NULL == mat || NULL == matvar )
         return MATIO_E_BAD_ARGUMENT;
     if ( NULL == matvar->name || matvar->rank != 2 )
         return MATIO_E_OUTPUT_BAD_DATA;
+    if ( matvar->class_type == MAT_C_SPARSE ) {
+        const mat_sparse_t *sparse = (const mat_sparse_t *)matvar->data;
+        if ( NULL == matvar->data || sparse->njc == 0 )
+            return MATIO_E_OUTPUT_BAD_DATA;
+    }
 
     switch ( matvar->data_type ) {
         case MAT_T_DOUBLE:
@@ -149,32 +157,14 @@ Mat_VarWrite4(mat_t *mat, matvar_t *matvar)
             return MATIO_E_OUTPUT_BAD_DATA;
     }
 
-#if defined(__GLIBC__)
-#if ( __BYTE_ORDER == __LITTLE_ENDIAN )
-#elif (__BYTE_ORDER == __BIG_ENDIAN)
+#if defined(MATIO_BE)
     x.type += 1000;
-#else
-    return MATIO_E_OPERATION_NOT_SUPPORTED;
-#endif
-#elif defined(_BIG_ENDIAN) && !defined(_LITTLE_ENDIAN)
-    x.type += 1000;
-#elif defined(_LITTLE_ENDIAN) && !defined(_BIG_ENDIAN)
-#elif defined(__sparc) || defined(__sparc__) || defined(_POWER) || defined(__powerpc__) || \
-    defined(__ppc__) || defined(__hpux) || defined(_MIPSEB) || defined(_POWER) ||          \
-    defined(__s390__)
-    x.type += 1000;
-#elif defined(__i386__) || defined(__alpha__) || defined(__ia64) || defined(__ia64__) ||   \
-    defined(_M_IX86) || defined(_M_IA64) || defined(_M_ALPHA) || defined(__amd64) ||       \
-    defined(__amd64__) || defined(_M_AMD64) || defined(__x86_64) || defined(__x86_64__) || \
-    defined(_M_X64) || defined(__bfin__)
-#else
-    return MATIO_E_OPERATION_NOT_SUPPORTED;
 #endif
 
     x.namelen = (mat_int32_t)strlen(matvar->name) + 1;
 
     /* FIXME: SEEK_END is not Guaranteed by the C standard */
-    (void)fseek((FILE *)mat->fp, 0, SEEK_END); /* Always write at end of file */
+    (void)fseeko((FILE *)mat->fp, 0, SEEK_END); /* Always write at end of file */
 
     switch ( matvar->class_type ) {
         case MAT_C_CHAR:
@@ -199,9 +189,7 @@ Mat_VarWrite4(mat_t *mat, matvar_t *matvar)
             fwrite(&x, sizeof(Fmatrix), 1, (FILE *)mat->fp);
             fwrite(matvar->name, sizeof(char), x.namelen, (FILE *)mat->fp);
             if ( matvar->isComplex ) {
-                mat_complex_split_t *complex_data;
-
-                complex_data = (mat_complex_split_t *)matvar->data;
+                const mat_complex_split_t *complex_data = (mat_complex_split_t *)matvar->data;
                 fwrite(complex_data->Re, matvar->data_size, nelems, (FILE *)mat->fp);
                 fwrite(complex_data->Im, matvar->data_size, nelems, (FILE *)mat->fp);
             } else {
@@ -212,7 +200,7 @@ Mat_VarWrite4(mat_t *mat, matvar_t *matvar)
         case MAT_C_SPARSE: {
             mat_sparse_t *sparse;
             double tmp;
-            mat_uint32_t j;
+            mat_uint32_t i, j;
             size_t stride = Mat_SizeOf(matvar->data_type);
 #if !defined(EXTENDED_SPARSE)
             if ( MAT_T_DOUBLE != matvar->data_type )
@@ -246,12 +234,9 @@ Mat_VarWrite4(mat_t *mat, matvar_t *matvar)
             fwrite(&tmp, sizeof(double), 1, (FILE *)mat->fp);
             tmp = 0.;
             if ( matvar->isComplex ) {
-                mat_complex_split_t *complex_data;
-                char *re, *im;
-
-                complex_data = (mat_complex_split_t *)sparse->data;
-                re = (char *)complex_data->Re;
-                im = (char *)complex_data->Im;
+                mat_complex_split_t *complex_data = (mat_complex_split_t *)sparse->data;
+                const char *re = (char *)complex_data->Re;
+                const char *im = (char *)complex_data->Im;
                 for ( i = 0; i < sparse->njc - 1; i++ ) {
                     for ( j = sparse->jc[i]; j < sparse->jc[i + 1] && j < sparse->ndata; j++ ) {
                         fwrite(re + j * stride, stride, 1, (FILE *)mat->fp);
@@ -264,7 +249,7 @@ Mat_VarWrite4(mat_t *mat, matvar_t *matvar)
                     }
                 }
             } else {
-                char *data = (char *)sparse->data;
+                const char *data = (char *)sparse->data;
                 for ( i = 0; i < sparse->njc - 1; i++ ) {
                     for ( j = sparse->jc[i]; j < sparse->jc[i + 1] && j < sparse->ndata; j++ ) {
                         fwrite(data + j * stride, stride, 1, (FILE *)mat->fp);
@@ -279,6 +264,9 @@ Mat_VarWrite4(mat_t *mat, matvar_t *matvar)
     }
 
     return MATIO_E_NO_ERROR;
+#else
+    return MATIO_E_OPERATION_NOT_SUPPORTED;
+#endif
 }
 
 /** @if mat_devman
@@ -302,7 +290,7 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
         return err;
     }
 
-    (void)fseek((FILE *)mat->fp, matvar->internal->datapos, SEEK_SET);
+    (void)fseeko((FILE *)mat->fp, matvar->internal->datapos, SEEK_SET);
 
     switch ( matvar->class_type ) {
         case MAT_C_DOUBLE:
@@ -376,50 +364,52 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
                 double tmp;
                 mat_uint32_t i;
                 mat_sparse_t *sparse;
-                long fpos;
+                mat_off_t fpos;
                 enum matio_types data_type = MAT_T_DOUBLE;
                 size_t readcount;
 
                 /* matvar->dims[1] either is 3 for real or 4 for complex sparse */
                 matvar->isComplex = matvar->dims[1] == 4 ? 1 : 0;
-                if ( matvar->dims[0] < 2 ) {
+                if ( 0 == matvar->dims[0] ) {
                     return MATIO_E_FILE_FORMAT_VIOLATION;
                 }
                 sparse = (mat_sparse_t *)matvar->data;
-                sparse->nir = matvar->dims[0] - 1;
+                sparse->nir = (mat_uint32_t)(matvar->dims[0] - 1);
                 sparse->nzmax = sparse->nir;
-                err = Mul(&readcount, sparse->nir, sizeof(mat_uint32_t));
-                if ( err ) {
-                    Mat_Critical("Integer multiplication overflow");
-                    return err;
-                }
-                sparse->ir = (mat_uint32_t *)malloc(readcount);
-                if ( sparse->ir != NULL ) {
-                    readcount = ReadUInt32Data(mat, sparse->ir, data_type, sparse->nir);
-                    if ( readcount != sparse->nir ) {
-                        free(sparse->ir);
-                        free(matvar->data);
-                        matvar->data = NULL;
-                        return MATIO_E_FILE_FORMAT_VIOLATION;
-                    }
-                    for ( i = 0; i < sparse->nir; i++ ) {
-                        if ( 0 == sparse->ir[i] ) {
-                            err = MATIO_E_FILE_FORMAT_VIOLATION;
-                            break;
-                        }
-                        sparse->ir[i] = sparse->ir[i] - 1;
-                    }
+                if ( sparse->nir > 0 ) {
+                    err = Mul(&readcount, sparse->nir, sizeof(mat_uint32_t));
                     if ( err ) {
-                        free(sparse->ir);
-                        free(matvar->data);
-                        matvar->data = NULL;
+                        Mat_Critical("Integer multiplication overflow");
                         return err;
                     }
-                } else {
-                    free(matvar->data);
-                    matvar->data = NULL;
-                    Mat_Critical("Couldn't allocate memory for the sparse row array");
-                    return MATIO_E_OUT_OF_MEMORY;
+                    sparse->ir = (mat_uint32_t *)malloc(readcount);
+                    if ( sparse->ir != NULL ) {
+                        readcount = ReadUInt32Data(mat, sparse->ir, data_type, sparse->nir);
+                        if ( readcount != sparse->nir ) {
+                            free(sparse->ir);
+                            free(matvar->data);
+                            matvar->data = NULL;
+                            return MATIO_E_FILE_FORMAT_VIOLATION;
+                        }
+                        for ( i = 0; i < sparse->nir; i++ ) {
+                            if ( 0 == sparse->ir[i] ) {
+                                err = MATIO_E_FILE_FORMAT_VIOLATION;
+                                break;
+                            }
+                            sparse->ir[i] = sparse->ir[i] - 1;
+                        }
+                        if ( err ) {
+                            free(sparse->ir);
+                            free(matvar->data);
+                            matvar->data = NULL;
+                            return err;
+                        }
+                    } else {
+                        free(matvar->data);
+                        matvar->data = NULL;
+                        Mat_Critical("Couldn't allocate memory for the sparse row array");
+                        return MATIO_E_OUT_OF_MEMORY;
+                    }
                 }
                 readcount = ReadDoubleData(mat, &tmp, data_type, 1);
                 if ( readcount != 1 || tmp > UINT_MAX - 1 || tmp < 0 ) {
@@ -431,7 +421,7 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
                 }
                 matvar->dims[0] = (size_t)tmp;
 
-                fpos = ftell((FILE *)mat->fp);
+                fpos = ftello((FILE *)mat->fp);
                 if ( fpos == -1L ) {
                     free(sparse->ir);
                     free(matvar->data);
@@ -439,7 +429,7 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
                     Mat_Critical("Couldn't determine file position");
                     return MATIO_E_FILE_FORMAT_VIOLATION;
                 }
-                (void)fseek((FILE *)mat->fp, sparse->nir * Mat_SizeOf(data_type), SEEK_CUR);
+                (void)fseeko((FILE *)mat->fp, sparse->nir * Mat_SizeOf(data_type), SEEK_CUR);
                 readcount = ReadDoubleData(mat, &tmp, data_type, 1);
                 if ( readcount != 1 || tmp > UINT_MAX - 1 || tmp < 0 ) {
                     free(sparse->ir);
@@ -449,7 +439,7 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
                     return MATIO_E_FILE_FORMAT_VIOLATION;
                 }
                 matvar->dims[1] = (size_t)tmp;
-                (void)fseek((FILE *)mat->fp, fpos, SEEK_SET);
+                (void)fseeko((FILE *)mat->fp, fpos, SEEK_SET);
                 if ( matvar->dims[1] > UINT_MAX - 1 ) {
                     free(sparse->ir);
                     free(matvar->data);
@@ -463,37 +453,45 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
                     Mat_Critical("Integer multiplication overflow");
                     return err;
                 }
-                sparse->jc = (mat_uint32_t *)malloc(readcount);
-                if ( sparse->jc != NULL ) {
-                    mat_uint32_t *jc;
-                    err = Mul(&readcount, sparse->nir, sizeof(mat_uint32_t));
-                    if ( err ) {
-                        Mat_Critical("Integer multiplication overflow");
-                        return err;
-                    }
-                    jc = (mat_uint32_t *)malloc(readcount);
-                    if ( jc != NULL ) {
-                        mat_uint32_t j = 0;
-                        sparse->jc[0] = 0;
-                        readcount = ReadUInt32Data(mat, jc, data_type, sparse->nir);
-                        if ( readcount != sparse->nir ) {
+                if ( sparse->nir > 0 ) {
+                    sparse->jc = (mat_uint32_t *)malloc(readcount);
+                    if ( sparse->jc != NULL ) {
+                        mat_uint32_t *jc;
+                        err = Mul(&readcount, sparse->nir, sizeof(mat_uint32_t));
+                        if ( err ) {
+                            Mat_Critical("Integer multiplication overflow");
+                            return err;
+                        }
+                        jc = (mat_uint32_t *)malloc(readcount);
+                        if ( jc != NULL ) {
+                            mat_uint32_t j = 0;
+                            sparse->jc[0] = 0;
+                            readcount = ReadUInt32Data(mat, jc, data_type, sparse->nir);
+                            if ( readcount != sparse->nir ) {
+                                free(jc);
+                                free(sparse->jc);
+                                free(sparse->ir);
+                                free(matvar->data);
+                                matvar->data = NULL;
+                                return MATIO_E_FILE_FORMAT_VIOLATION;
+                            }
+                            for ( i = 1; i < sparse->njc - 1; i++ ) {
+                                while ( j < sparse->nir && jc[j] <= i )
+                                    j++;
+                                sparse->jc[i] = j;
+                            }
                             free(jc);
+                            /* terminating nnz */
+                            sparse->jc[sparse->njc - 1] = sparse->nir;
+                        } else {
                             free(sparse->jc);
                             free(sparse->ir);
                             free(matvar->data);
                             matvar->data = NULL;
-                            return MATIO_E_FILE_FORMAT_VIOLATION;
+                            Mat_Critical("Couldn't allocate memory for the sparse index array");
+                            return MATIO_E_OUT_OF_MEMORY;
                         }
-                        for ( i = 1; i < sparse->njc - 1; i++ ) {
-                            while ( j < sparse->nir && jc[j] <= i )
-                                j++;
-                            sparse->jc[i] = j;
-                        }
-                        free(jc);
-                        /* terminating nnz */
-                        sparse->jc[sparse->njc - 1] = sparse->nir;
                     } else {
-                        free(sparse->jc);
                         free(sparse->ir);
                         free(matvar->data);
                         matvar->data = NULL;
@@ -501,11 +499,7 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
                         return MATIO_E_OUT_OF_MEMORY;
                     }
                 } else {
-                    free(sparse->ir);
-                    free(matvar->data);
-                    matvar->data = NULL;
-                    Mat_Critical("Couldn't allocate memory for the sparse index array");
-                    return MATIO_E_OUT_OF_MEMORY;
+                    sparse->jc = (mat_uint32_t *)calloc(readcount, 1);
                 }
                 readcount = ReadDoubleData(mat, &tmp, data_type, 1);
                 if ( readcount != 1 ) {
@@ -646,7 +640,7 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
                         Mat_Critical("Couldn't allocate memory for the complex sparse data");
                         return MATIO_E_OUT_OF_MEMORY;
                     }
-                } else {
+                } else if ( sparse->ndata > 0 ) {
                     sparse->data = malloc(sparse->ndata * Mat_SizeOf(data_type));
                     if ( sparse->data != NULL ) {
 #if defined(EXTENDED_SPARSE)
@@ -738,6 +732,17 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
                         Mat_Critical("Couldn't allocate memory for the sparse data");
                         return MATIO_E_OUT_OF_MEMORY;
                     }
+                } else {
+                    readcount = ReadDoubleData(mat, &tmp, data_type, 1);
+                    err = readcount != 1;
+                    if ( err ) {
+                        free(sparse->data);
+                        free(sparse->jc);
+                        free(sparse->ir);
+                        free(matvar->data);
+                        matvar->data = NULL;
+                        return MATIO_E_FILE_FORMAT_VIOLATION;
+                    }
                 }
                 break;
             } else {
@@ -767,11 +772,12 @@ Mat_VarRead4(mat_t *mat, matvar_t *matvar)
  * @endif
  */
 int
-Mat_VarReadData4(mat_t *mat, matvar_t *matvar, void *data, int *start, int *stride, int *edge)
+Mat_VarReadData4(mat_t *mat, const matvar_t *matvar, void *data, const int *start,
+                 const int *stride, const int *edge)
 {
     int err = MATIO_E_NO_ERROR;
 
-    (void)fseek((FILE *)mat->fp, matvar->internal->datapos, SEEK_SET);
+    (void)fseeko((FILE *)mat->fp, matvar->internal->datapos, SEEK_SET);
 
     switch ( matvar->data_type ) {
         case MAT_T_DOUBLE:
@@ -801,7 +807,7 @@ Mat_VarReadData4(mat_t *mat, matvar_t *matvar, void *data, int *start, int *stri
 
             ReadDataSlab2(mat, cdata->Re, matvar->class_type, matvar->data_type, matvar->dims,
                           start, stride, edge);
-            (void)fseek((FILE *)mat->fp, matvar->internal->datapos + nbytes, SEEK_SET);
+            (void)fseeko((FILE *)mat->fp, matvar->internal->datapos + nbytes, SEEK_SET);
             ReadDataSlab2(mat, cdata->Im, matvar->class_type, matvar->data_type, matvar->dims,
                           start, stride, edge);
         } else {
@@ -819,7 +825,7 @@ Mat_VarReadData4(mat_t *mat, matvar_t *matvar, void *data, int *start, int *stri
 
         ReadDataSlabN(mat, cdata->Re, matvar->class_type, matvar->data_type, matvar->rank,
                       matvar->dims, start, stride, edge);
-        (void)fseek((FILE *)mat->fp, matvar->internal->datapos + nbytes, SEEK_SET);
+        (void)fseeko((FILE *)mat->fp, matvar->internal->datapos + nbytes, SEEK_SET);
         ReadDataSlabN(mat, cdata->Im, matvar->class_type, matvar->data_type, matvar->rank,
                       matvar->dims, start, stride, edge);
     } else {
@@ -855,9 +861,9 @@ Mat_VarReadDataLinear4(mat_t *mat, matvar_t *matvar, void *data, int start, int 
         return err;
     }
 
-    (void)fseek((FILE *)mat->fp, matvar->internal->datapos, SEEK_SET);
+    (void)fseeko((FILE *)mat->fp, matvar->internal->datapos, SEEK_SET);
 
-    matvar->data_size = Mat_SizeOf(matvar->data_type);
+    matvar->data_size = (int)Mat_SizeOf(matvar->data_type);
 
     if ( (size_t)stride * (edge - 1) + start + 1 > nelems ) {
         return MATIO_E_BAD_ARGUMENT;
@@ -872,7 +878,7 @@ Mat_VarReadDataLinear4(mat_t *mat, matvar_t *matvar, void *data, int start, int 
 
         ReadDataSlab1(mat, complex_data->Re, matvar->class_type, matvar->data_type, start, stride,
                       edge);
-        (void)fseek((FILE *)mat->fp, matvar->internal->datapos + nelems, SEEK_SET);
+        (void)fseeko((FILE *)mat->fp, matvar->internal->datapos + nelems, SEEK_SET);
         ReadDataSlab1(mat, complex_data->Im, matvar->class_type, matvar->data_type, start, stride,
                       edge);
     } else {
@@ -895,7 +901,7 @@ Mat_VarReadNextInfo4(mat_t *mat)
 {
     int M, O, data_type, class_type;
     mat_int32_t tmp;
-    long nBytes, fpos;
+    mat_off_t nBytes, fpos;
     matvar_t *matvar = NULL;
     union {
         mat_uint32_t u;
@@ -1049,7 +1055,7 @@ Mat_VarReadNextInfo4(mat_t *mat)
         matvar->name[tmp - 1] = '\0';
     }
 
-    matvar->internal->datapos = ftell((FILE *)mat->fp);
+    matvar->internal->datapos = ftello((FILE *)mat->fp);
     if ( matvar->internal->datapos == -1L ) {
         Mat_VarFree(matvar);
         Mat_Critical("Couldn't determine file position");
@@ -1067,9 +1073,9 @@ Mat_VarReadNextInfo4(mat_t *mat)
             return NULL;
         }
 
-        nBytes = (long)tmp2;
+        nBytes = (mat_off_t)tmp2;
     }
-    (void)fseek((FILE *)mat->fp, nBytes, SEEK_CUR);
+    (void)fseeko((FILE *)mat->fp, nBytes, SEEK_CUR);
 
     return matvar;
 }

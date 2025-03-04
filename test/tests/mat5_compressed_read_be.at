@@ -1,4 +1,5 @@
-# Copyright (c) 2010-2021, Christopher C. Hulbert
+# Copyright (c) 2015-2024, The matio contributors
+# Copyright (c) 2010-2014, Christopher C. Hulbert
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -87,7 +88,7 @@ AT_CLEANUP
 AT_SETUP([Read 2D complex double array])
 AT_SKIP_IF([test $COMPRESSION_ZLIB -ne 1])
 AT_CHECK([cp $srcdir/results/read-var11.out expout
-          $builddir/test_mat readvar $srcdir/datasets/matio_test_cases_compressed_be.mat var11],[0], [[expout]],[])
+          $builddir/test_mat readvar $srcdir/datasets/matio_test_cases_compressed_be.mat var11],[0],[expout],[])
 AT_CHECK([cp $srcdir/results/dump-var11.out expout
           $builddir/../tools/matdump -d $srcdir/datasets/matio_test_cases_compressed_be.mat var11],[0],[expout],[])
 AT_CLEANUP
@@ -149,7 +150,7 @@ AT_CLEANUP
 AT_SETUP([Read 2D logical array])
 AT_SKIP_IF([test $COMPRESSION_ZLIB -ne 1])
 AT_CHECK([cp $srcdir/results/read-var90.out expout
-          $builddir/test_mat readvar $srcdir/datasets/matio_test_cases_compressed_be.mat var90],[0], [[expout]],[])
+          $builddir/test_mat readvar $srcdir/datasets/matio_test_cases_compressed_be.mat var90],[0],[expout],[])
 AT_CLEANUP
 
 AT_SETUP([Read sparse double array])
@@ -168,7 +169,7 @@ AT_SETUP([Read empty array])
 AT_KEYWORDS([empty])
 AT_SKIP_IF([test $COMPRESSION_ZLIB -ne 1])
 AT_CHECK([cp $srcdir/results/read-var23.out expout
-          $builddir/test_mat readvar $srcdir/datasets/matio_test_cases_compressed_be.mat var23],[0], [[expout]],[])
+          $builddir/test_mat readvar $srcdir/datasets/matio_test_cases_compressed_be.mat var23],[0],[expout],[])
 AT_CLEANUP
 
 AT_SETUP([Read 2D character array])
@@ -321,7 +322,7 @@ AT_CLEANUP
 AT_SETUP([Read struct with logical fields])
 AT_SKIP_IF([test $COMPRESSION_ZLIB -ne 1])
 AT_CHECK([cp $srcdir/results/read-var91.out expout
-          $builddir/test_mat readvar $srcdir/datasets/matio_test_cases_compressed_be.mat var91],[0], [[expout]],[])
+          $builddir/test_mat readvar $srcdir/datasets/matio_test_cases_compressed_be.mat var91],[0],[expout],[])
 AT_CLEANUP
 
 AT_SETUP([Read struct with sparse double fields])

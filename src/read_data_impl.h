@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2019-2021, Christopher C. Hulbert
+ * Copyright (c) 2015-2024, The matio contributors
+ * Copyright (c) 2019-2014, Christopher C. Hulbert
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -574,7 +575,7 @@ READ_TYPED_FUNC2(mat_t *mat, z_streamp z, READ_TYPE *data, enum matio_types data
         default:
             break;
     }
-    return len * Mat_SizeOf(data_type);
+    return (int)(len * Mat_SizeOf(data_type));
 }
 
 #undef READ_TYPE_DOUBLE_DATA
