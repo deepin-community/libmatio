@@ -3,7 +3,8 @@
  * @ingroup MAT
  */
 /*
- * Copyright (c) 2005-2021, Christopher C. Hulbert
+ * Copyright (c) 2015-2024, The matio contributors
+ * Copyright (c) 2005-2014, Christopher C. Hulbert
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,7 @@
             }                                                         \
         } else {                                                      \
             size_t j;                                                 \
-            int err = 0;                                              \
+            int err_ = 0;                                             \
             readcount = 0;                                            \
             for ( i = 0; i < len - block_size; i += block_size ) {    \
                 j = fread(v, data_size, block_size, (FILE *)mat->fp); \
@@ -62,11 +63,11 @@
                         data[i + j] = (T)v[j];                        \
                     }                                                 \
                 } else {                                              \
-                    err = 1;                                          \
+                    err_ = 1;                                         \
                     break;                                            \
                 }                                                     \
             }                                                         \
-            if ( 0 == err && len > i ) {                              \
+            if ( 0 == err_ && len > i ) {                             \
                 j = fread(v, data_size, len - i, (FILE *)mat->fp);    \
                 readcount += j;                                       \
                 if ( j == len - i ) {                                 \
@@ -91,7 +92,7 @@
                 }                                                         \
             } else {                                                      \
                 size_t j;                                                 \
-                int err = 0;                                              \
+                int err_ = 0;                                             \
                 readcount = 0;                                            \
                 for ( i = 0; i < len - block_size; i += block_size ) {    \
                     j = fread(v, data_size, block_size, (FILE *)mat->fp); \
@@ -101,11 +102,11 @@
                             data[i + j] = (T)SwapFunc(&v[j]);             \
                         }                                                 \
                     } else {                                              \
-                        err = 1;                                          \
+                        err_ = 1;                                         \
                         break;                                            \
                     }                                                     \
                 }                                                         \
-                if ( 0 == err && len > i ) {                              \
+                if ( 0 == err_ && len > i ) {                             \
                     j = fread(v, data_size, len - i, (FILE *)mat->fp);    \
                     readcount += j;                                       \
                     if ( j == len - i ) {                                 \
@@ -121,58 +122,58 @@
     } while ( 0 )
 
 #if HAVE_ZLIB
-#define READ_COMPRESSED_DATA_NOSWAP(T)                         \
-    do {                                                       \
-        const size_t block_size = READ_BLOCK_SIZE / data_size; \
-        if ( len <= block_size ) {                             \
-            InflateData(mat, z, v, len *data_size);            \
-            for ( i = 0; i < len; i++ ) {                      \
-                data[i] = (T)v[i];                             \
-            }                                                  \
-        } else {                                               \
-            mat_uint32_t j;                                    \
-            len -= block_size;                                 \
-            for ( i = 0; i < len; i += block_size ) {          \
-                InflateData(mat, z, v, block_size *data_size); \
-                for ( j = 0; j < block_size; j++ ) {           \
-                    data[i + j] = (T)v[j];                     \
-                }                                              \
-            }                                                  \
-            len -= (i - block_size);                           \
-            InflateData(mat, z, v, len *data_size);            \
-            for ( j = 0; j < len; j++ ) {                      \
-                data[i + j] = (T)v[j];                         \
-            }                                                  \
-        }                                                      \
+#define READ_COMPRESSED_DATA_NOSWAP(T)                                          \
+    do {                                                                        \
+        const size_t block_size = READ_BLOCK_SIZE / data_size;                  \
+        if ( len <= block_size ) {                                              \
+            InflateData(mat, z, v, (mat_uint32_t)(len * data_size));            \
+            for ( i = 0; i < len; i++ ) {                                       \
+                data[i] = (T)v[i];                                              \
+            }                                                                   \
+        } else {                                                                \
+            mat_uint32_t j;                                                     \
+            len -= (mat_uint32_t)block_size;                                    \
+            for ( i = 0; i < len; i += (mat_uint32_t)block_size ) {             \
+                InflateData(mat, z, v, (mat_uint32_t)(block_size * data_size)); \
+                for ( j = 0; j < block_size; j++ ) {                            \
+                    data[i + j] = (T)v[j];                                      \
+                }                                                               \
+            }                                                                   \
+            len -= (mat_uint32_t)(i - block_size);                              \
+            InflateData(mat, z, v, (mat_uint32_t)(len * data_size));            \
+            for ( j = 0; j < len; j++ ) {                                       \
+                data[i + j] = (T)v[j];                                          \
+            }                                                                   \
+        }                                                                       \
     } while ( 0 )
 
-#define READ_COMPRESSED_DATA(T, SwapFunc)                          \
-    do {                                                           \
-        if ( mat->byteswap ) {                                     \
-            const size_t block_size = READ_BLOCK_SIZE / data_size; \
-            if ( len <= block_size ) {                             \
-                InflateData(mat, z, v, len *data_size);            \
-                for ( i = 0; i < len; i++ ) {                      \
-                    data[i] = (T)SwapFunc(&v[i]);                  \
-                }                                                  \
-            } else {                                               \
-                mat_uint32_t j;                                    \
-                len -= block_size;                                 \
-                for ( i = 0; i < len; i += block_size ) {          \
-                    InflateData(mat, z, v, block_size *data_size); \
-                    for ( j = 0; j < block_size; j++ ) {           \
-                        data[i + j] = (T)SwapFunc(&v[j]);          \
-                    }                                              \
-                }                                                  \
-                len -= (i - block_size);                           \
-                InflateData(mat, z, v, len *data_size);            \
-                for ( j = 0; j < len; j++ ) {                      \
-                    data[i + j] = (T)SwapFunc(&v[j]);              \
-                }                                                  \
-            }                                                      \
-        } else {                                                   \
-            READ_COMPRESSED_DATA_NOSWAP(T);                        \
-        }                                                          \
+#define READ_COMPRESSED_DATA(T, SwapFunc)                                           \
+    do {                                                                            \
+        if ( mat->byteswap ) {                                                      \
+            const size_t block_size = READ_BLOCK_SIZE / data_size;                  \
+            if ( len <= block_size ) {                                              \
+                InflateData(mat, z, v, (mat_uint32_t)(len * data_size));            \
+                for ( i = 0; i < len; i++ ) {                                       \
+                    data[i] = (T)SwapFunc(&v[i]);                                   \
+                }                                                                   \
+            } else {                                                                \
+                mat_uint32_t j;                                                     \
+                len -= (mat_uint32_t)block_size;                                    \
+                for ( i = 0; i < len; i += (mat_uint32_t)block_size ) {             \
+                    InflateData(mat, z, v, (mat_uint32_t)(block_size * data_size)); \
+                    for ( j = 0; j < block_size; j++ ) {                            \
+                        data[i + j] = (T)SwapFunc(&v[j]);                           \
+                    }                                                               \
+                }                                                                   \
+                len -= (mat_uint32_t)(i - block_size);                              \
+                InflateData(mat, z, v, (mat_uint32_t)(len * data_size));            \
+                for ( j = 0; j < len; j++ ) {                                       \
+                    data[i + j] = (T)SwapFunc(&v[j]);                               \
+                }                                                                   \
+            }                                                                       \
+        } else {                                                                    \
+            READ_COMPRESSED_DATA_NOSWAP(T);                                         \
+        }                                                                           \
     } while ( 0 )
 
 #endif
@@ -340,7 +341,7 @@ ReadCompressedCharData(mat_t *mat, z_streamp z, void *data, enum matio_types dat
                 mat_uint16_t *ptr = (mat_uint16_t *)data;
                 size_t i;
                 for ( i = 0; i < len; i++ ) {
-                    Mat_uint16Swap((mat_uint16_t *)&ptr[i]);
+                    Mat_uint16Swap(&ptr[i]);
                 }
             }
             break;
@@ -495,7 +496,7 @@ ReadCharData(mat_t *mat, void *_data, enum matio_types data_type, size_t len)
  */
 int
 ReadDataSlabN(mat_t *mat, void *data, enum matio_classes class_type, enum matio_types data_type,
-              int rank, size_t *dims, int *start, int *stride, int *edge)
+              int rank, const size_t *dims, const int *start, const int *stride, const int *edge)
 {
     int nBytes = 0, i, j, N, I = 0;
     int inc[10] =
@@ -675,8 +676,8 @@ ReadDataSlabN(mat_t *mat, void *data, enum matio_classes class_type, enum matio_
  */
 int
 ReadCompressedDataSlabN(mat_t *mat, z_streamp z, void *data, enum matio_classes class_type,
-                        enum matio_types data_type, int rank, size_t *dims, int *start, int *stride,
-                        int *edge)
+                        enum matio_types data_type, int rank, const size_t *dims, const int *start,
+                        const int *stride, const int *edge)
 {
     int nBytes = 0, i, j, N, I = 0, err;
     int inc[10] =
@@ -926,7 +927,7 @@ ReadDataSlab1(mat_t *mat, void *data, enum matio_classes class_type, enum matio_
  */
 int
 ReadDataSlab2(mat_t *mat, void *data, enum matio_classes class_type, enum matio_types data_type,
-              size_t *dims, int *start, int *stride, int *edge)
+              const size_t *dims, const int *start, const int *stride, const int *edge)
 {
     int nBytes = 0, data_size, i, j;
     long pos, row_stride, col_stride, pos2;
@@ -1023,7 +1024,6 @@ ReadDataSlab2(mat_t *mat, void *data, enum matio_classes class_type, enum matio_
  * @param data Pointer to store the output data
  * @param class_type Type of data class (matio_classes enumerations)
  * @param data_type Datatype of the stored data (matio_types enumerations)
- * @param dims Dimensions of the data
  * @param start Index to start reading data in each dimension
  * @param stride Read every @c stride elements in each dimension
  * @param edge Number of elements to read in each dimension
@@ -1162,8 +1162,8 @@ ReadCompressedDataSlab1(mat_t *mat, z_streamp z, void *data, enum matio_classes 
  */
 int
 ReadCompressedDataSlab2(mat_t *mat, z_streamp z, void *data, enum matio_classes class_type,
-                        enum matio_types data_type, size_t *dims, int *start, int *stride,
-                        int *edge)
+                        enum matio_types data_type, const size_t *dims, const int *start,
+                        const int *stride, const int *edge)
 {
     int nBytes = 0, i, j, err;
     int pos, row_stride, col_stride;

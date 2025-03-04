@@ -2,7 +2,8 @@ dnl  configure.ac
 dnl
 dnl  NOTE:  Process this file with GNU autoconf to produce a configure script.
 dnl
-dnl Copyright (c) 2005-2021, Christopher C. Hulbert
+dnl Copyright (c) 2015-2024, The matio contributors
+dnl Copyright (c) 2005-2014, Christopher C. Hulbert
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -26,7 +27,7 @@ dnl CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY
 dnl OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 dnl OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AC_INIT([MATIO],[1.5.21],[t-beu@users.sourceforge.net],[],[https://sourceforge.net/projects/matio])
+AC_INIT([MATIO],[1.5.28],[t-beu@users.sourceforge.net],[],[https://sourceforge.net/projects/matio])
 AC_CONFIG_SRCDIR([src/matio.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
@@ -38,10 +39,10 @@ AC_CANONICAL_HOST
 AC_DEFINE_UNQUOTED([MATIO_PLATFORM],"${host}",[Platform])
 AC_DEFINE_UNQUOTED([MATIO_MAJOR_VERSION],1,[Matio major version number])
 AC_DEFINE_UNQUOTED([MATIO_MINOR_VERSION],5,[Matio minor version number])
-AC_DEFINE_UNQUOTED([MATIO_RELEASE_LEVEL],21,[Matio release level number])
-AC_DEFINE_UNQUOTED([MATIO_VERSION],1521,[Matio version number])
-PACKAGE_RELEASE_DATE="25 March 2021"
-AC_DEFINE_UNQUOTED([MATIO_VERSION_STR],"1.5.21",[Matio version number])
+AC_DEFINE_UNQUOTED([MATIO_RELEASE_LEVEL],28,[Matio release level number])
+AC_DEFINE_UNQUOTED([MATIO_VERSION],1528,[Matio version number])
+PACKAGE_RELEASE_DATE="30 October 2024"
+AC_DEFINE_UNQUOTED([MATIO_VERSION_STR],"1.5.28",[Matio version number])
 AC_SUBST(PACKAGE_RELEASE_DATE)
 
 AC_ARG_VAR([FCLDFLAGS],[Fortran compiler-specific flags at link time])
@@ -52,6 +53,7 @@ dnl
 dnl  Build programs, C compiler, F77 compiler, make, install, etc.
 dnl
 AC_PROG_CC([pgcc icc gcc cc])
+AC_USE_SYSTEM_EXTENSIONS
 
 AC_ARG_ENABLE(coverage,
 [  --enable-coverage       Enable coverage testing],
@@ -132,6 +134,26 @@ AC_PROG_INSTALL
 AC_PROG_GREP
 
 dnl
+dnl  Large file support
+dnl
+AC_SYS_LARGEFILE
+AC_MSG_CHECKING(for large file support in 32-bit OS)
+if test "$ac_cv_sys_file_offset_bits" != no \
+     -o "$ac_cv_sys_large_files" != no ; then
+    AC_DEFINE_UNQUOTED([_LARGEFILE64_SOURCE],[1],[Define if 64-bit file address support in 32-bit OS.])
+    AC_DEFINE_UNQUOTED([_FILE_OFFSET_BITS],[64],[Define if 64-bit file address support in 32-bit OS.])
+    AC_MSG_RESULT(yes)
+else
+    AC_MSG_RESULT(no)
+fi
+AC_CHECK_FUNCS([fseeko])
+AC_CHECK_FUNCS([ftello])
+AC_CHECK_FUNCS([fseeko64])
+AC_CHECK_FUNCS([ftello64])
+AC_CHECK_FUNCS([_fseeki64])
+AC_CHECK_FUNCS([_ftelli64])
+
+dnl
 dnl  Libraries
 dnl
 
@@ -142,7 +164,6 @@ dnl  Headers
 dnl
 
 AC_CONFIG_HEADERS([src/matioConfig.h src/matio_pubconf.h])
-AC_HEADER_STDC
 AC_CHECK_HEADERS_ONCE([stdarg.h])
 AC_CHECK_HEADERS_ONCE([varargs.h])
 AC_CHECK_HEADER([inttypes.h],[AC_DEFINE_UNQUOTED([MATIO_HAVE_INTTYPES_H],[1],[Matio has access to inttypes.h])])
@@ -150,7 +171,7 @@ AC_CHECK_HEADER([stdint.h],[AC_DEFINE_UNQUOTED([MATIO_HAVE_STDINT_H],[1],[Matio 
 AC_CHECK_HEADER([intsafe.h],[AC_DEFINE_UNQUOTED([HAVE_INTSAFE_H],[1],[Matio has access to intsafe.h])])
 AC_CHECK_HEADER([strings.h],[AC_DEFINE_UNQUOTED([HAVE_STRINGS_H],[1],[Matio has access to strings.h])])
 AC_CHECK_HEADER([unistd.h],[AC_DEFINE_UNQUOTED([HAVE_UNISTD_H],[1],[Matio has access to unistd.h])])
-AC_CHECK_HEADERS([locale.h stddef.h])
+AC_CHECK_HEADERS([float.h locale.h stddef.h])
 AC_CHECK_MEMBERS([struct lconv.decimal_point, struct lconv.thousands_sep], [], [], [#include <locale.h>])
 
 AC_CHECK_TYPES([ptrdiff_t])
@@ -166,6 +187,7 @@ AC_CHECK_SIZEOF([int])
 AC_CHECK_SIZEOF([short])
 AC_CHECK_SIZEOF([char])
 AC_CHECK_SIZEOF([void *])
+AC_CHECK_SIZEOF([off_t])
 AC_CHECK_SIZEOF([size_t])
 
 dnl
@@ -199,6 +221,8 @@ fi
 AC_SUBST([HAVE_UINT64],[$HAVE_UINT64])
 AC_SUBST([HAVE_INT64], [$HAVE_INT64])
 
+AC_TYPE_OFF_T
+AC_TYPE_OFF64_T
 AC_TYPE_LONG_DOUBLE
 AC_TYPE_LONG_LONG_INT
 AC_TYPE_UNSIGNED_LONG_LONG_INT
@@ -361,6 +385,7 @@ AC_SUBST([AUTOTEST], ['$(AUTOM4TE) --language=Autotest'])
 
 AC_CONFIG_FILES([Makefile \
                  matio.pc \
+                 snprintf/Makefile \
                  src/Makefile \
                  getopt/Makefile \
                  tools/Makefile \

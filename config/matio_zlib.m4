@@ -22,20 +22,19 @@ then
     CFLAGS="$saved_CFLAGS $ZLIB_CFLAGS"
 
     Z_PREFIX=0
-    AC_TRY_LINK( [
-#include <stdlib.h>
-#include <zlib.h>
-                  ],
-[inflateCopy(NULL,NULL);], ac_have_zlib=yes, ac_have_zlib=no)
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+        #include <stdlib.h>
+        #include <zlib.h>
+    ]], [[inflateCopy(NULL,NULL);]])],[ac_have_zlib=yes],[ac_have_zlib=no])
 
     if test "$ac_have_zlib" = "no"
     then
         # Try again with Z_PREFIX
-        AC_TRY_LINK( [
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([[
             #include <stdlib.h>
             #define Z_PREFIX
             #include <zlib.h>
-        ],[inflateCopy(NULL,NULL);],ac_have_zlib=yes,ac_have_zlib=no)
+        ]], [[inflateCopy(NULL,NULL);]])],[ac_have_zlib=yes],[ac_have_zlib=no])
         Z_PREFIX=1
     fi
 
@@ -46,6 +45,7 @@ then
     then
         ZLIB_LIBS="$ZLIB_LDOPTS"
         AC_DEFINE_UNQUOTED([HAVE_ZLIB],[1],[Have zlib])
+        ZLIB_REQUIRES_PRIVATE="zlib >= 1.2.3"
         AC_SUBST(ZLIB_LIBS)
         AC_SUBST(ZLIB_CFLAGS)
         if test "$Z_PREFIX" = "1"
@@ -54,10 +54,14 @@ then
         fi
         AC_MSG_RESULT([$ZLIB_LIBS])
     else
+        ZLIB_REQUIRES_PRIVATE=""
         AC_MSG_NOTICE($ac_have_zlib)
     fi
 else
+    ZLIB_REQUIRES_PRIVATE=""
     ac_have_zlib=no
 fi
+
+AC_SUBST(ZLIB_REQUIRES_PRIVATE)
 AM_CONDITIONAL(HAVE_ZLIB, test "$ac_have_zlib" = "yes" )
 ])

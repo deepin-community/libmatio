@@ -1,3 +1,67 @@
+libmatio (1.5.28-1) unstable; urgency=medium
+
+  * New upstream version 1.5.28
+
+ -- Sébastien Villemot <sebastien@debian.org>  Mon, 04 Nov 2024 16:12:48 +0100
+
+libmatio (1.5.27-2) unstable; urgency=medium
+
+  * Upload to unstable
+
+ -- Sébastien Villemot <sebastien@debian.org>  Fri, 31 May 2024 14:39:19 +0200
+
+libmatio (1.5.27-1) experimental; urgency=medium
+
+  * New upstream version 1.5.27
+  * d/copyright: reflect upstream changes
+  * SOVERSION bump 11 → 13
+  * Bump S-V to 4.7.0
+
+ -- Sébastien Villemot <sebastien@debian.org>  Fri, 26 Apr 2024 11:56:49 +0200
+
+libmatio (1.5.26-1) unstable; urgency=medium
+
+  * New upstream version 1.5.26
+
+ -- Sébastien Villemot <sebastien@debian.org>  Wed, 15 Nov 2023 11:14:59 +0100
+
+libmatio (1.5.24-1) unstable; urgency=medium
+
+  * New upstream version 1.5.24
+  * d/copyright: reflect upstream changes
+  * Remove empty debian/patches/series.
+  * Update standards version to 4.6.2, no changes needed.
+  * d/rules: enable link-time optimizations (LTO)
+  * Update symbols file for new API functions
+
+ -- Sébastien Villemot <sebastien@debian.org>  Mon, 30 Oct 2023 17:31:24 +0100
+
+libmatio (1.5.23-2) unstable; urgency=medium
+
+  * Set HDF5_USE_FILE_LOCKING=FALSE when running the testsuite.
+    Since debhelper 13.7, the testsuite is run in parallel by default, which
+    exposes an HDF5 concurrency issue. (Closes: #1011805)
+  * Bump S-V to 4.6.1
+
+ -- Sébastien Villemot <sebastien@debian.org>  Wed, 01 Jun 2022 11:36:29 +0200
+
+libmatio (1.5.23-1) unstable; urgency=medium
+
+  * New upstream version 1.5.23
+  * fix-strtol-call.patch: drop patch, applied upstream
+
+ -- Sébastien Villemot <sebastien@debian.org>  Mon, 11 Apr 2022 15:06:23 +0200
+
+libmatio (1.5.22-1) unstable; urgency=medium
+
+  * New upstream version 1.5.22
+    + fixes CVE-2020-36428 (Closes: #991370)
+  * d/copyright: reflect upstream changes
+  * Use secure URI in debian/watch.
+  * fix-strtol-call.patch: new patch, fixes testsuite
+
+ -- Sébastien Villemot <sebastien@debian.org>  Tue, 29 Mar 2022 11:06:11 +0200
+
 libmatio (1.5.21-1) unstable; urgency=medium
 
   * New upstream version 1.5.21

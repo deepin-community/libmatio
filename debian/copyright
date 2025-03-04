@@ -4,6 +4,11 @@ Upstream-Contact: Christopher C. Hulbert <t-beu@users.sourceforge.net>
 Source: https://sourceforge.net/projects/matio/
 
 Files: *
+Copyright: 2005-2014 Christopher C. Hulbert
+           2015-2024 The matio contributors
+License: BSD-2-clause
+
+Files: config/matio_off64_t.m4
 Copyright: 2005-2021 Christopher C. Hulbert
 License: BSD-2-clause
 
@@ -32,7 +37,7 @@ License: CC0-1.0
   Universal license can be found in the file
   `/usr/share/common-licenses/CC0-1.0'.
 
-Files: src/snprintf.c
+Files: snprintf/snprintf.c
 Copyright: 1995 Patrick Powell
            2008 Holger Weiss
 License: permissive
@@ -46,7 +51,7 @@ License: BSD-3-clause
 
 Files: debian/*
 Copyright: 2008-2013 Sylvestre Ledru <sylvestre@debian.org>
-           2013-2021 Sébastien Villemot <sebastien@debian.org>
+           2013-2024 Sébastien Villemot <sebastien@debian.org>
 License: BSD-2-clause
 
 License: BSD-2-clause
