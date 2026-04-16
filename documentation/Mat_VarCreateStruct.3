@@ -1,4 +1,4 @@
-.\" Copyright (c) 2015-2024, The matio contributors
+.\" Copyright (c) 2015-2026, The matio contributors
 .\" Copyright (c) 2012-2014, Christopher C. Hulbert
 .\" All rights reserved.
 .\"
@@ -23,7 +23,7 @@
 .\" OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 .\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd November 20, 2023
+.Dd January 5, 2026
 .Dt MAT_VARCREATESTRUCT 3
 .Os
 .Sh NAME
@@ -36,7 +36,7 @@
 .Fa "const char *name"
 .Fa "int rank"
 .Fa "const size_t *dims"
-.Fa "const char **fields"
+.Fa "const char *const *fields"
 .Fa "unsigned nfields"
 .Fc
 .Sh DESCRIPTION
@@ -53,6 +53,9 @@ The structure variable pointer should be free'd when no longer needed using
 .Fn Mat_VarFree .
 The names of the fields are copied in the function, and thus should be released
 after calling the function if necessary.
+.SH DEPRECATED
+This function is deprecated since version 1.5.30.
+Use \fBMat_VarCreateStruct2\fP instead.
 .Sh EXAMPLES
 This example program opens a MAT file named by the first argument to the
 program, and writes a structure named
@@ -100,5 +103,6 @@ main(int argc, char **argv)
 }
 .Ed
 .Sh SEE ALSO
+.Xr Mat_VarCreateStruct2 3 ,
 .Xr Mat_VarCreate 3 ,
 .Xr Mat_VarSetStructFieldByName 3

@@ -2,7 +2,7 @@
  * MAT File I/O Utility Functions
  */
 /*
- * Copyright (c) 2015-2024, The matio contributors
+ * Copyright (c) 2015-2026, The matio contributors
  * Copyright (c) 2005-2014, Christopher C. Hulbert
  * All rights reserved.
  *
@@ -59,19 +59,39 @@ static char *strdup_vprintf(const char *format, va_list ap) MATIO_FORMATATTR_VPR
 static char *
 strdup_vprintf(const char *format, va_list ap)
 {
-    va_list ap2;
     int size;
     char *buffer;
+    size_t need;
 
-    va_copy(ap2, ap);
-    size = mat_vsnprintf(NULL, 0, format, ap2) + 1;
-    va_end(ap2);
+    {
+        va_list ap2;
+        va_copy(ap2, ap);
+        size = mat_vsnprintf(NULL, 0, format, ap2);
+        va_end(ap2);
+    }
 
-    buffer = (char *)malloc(size + 1);
-    if ( !buffer )
+    if ( size < 0 )
         return NULL;
 
-    mat_vsnprintf(buffer, size, format, ap);
+    need = (size_t)size + 1;
+    if ( need > (1ULL << 30) )
+        return NULL;
+
+    buffer = (char *)malloc(need);
+    if ( NULL == buffer )
+        return NULL;
+
+    {
+        va_list ap2;
+        int written;
+        va_copy(ap2, ap);
+        written = mat_vsnprintf(buffer, need, format, ap2);
+        va_end(ap2);
+        if ( written < 0 || (size_t)written >= need ) {
+            free(buffer);
+            return NULL;
+        }
+    }
     return buffer;
 }
 
@@ -181,8 +201,12 @@ mat_log(int loglevel, const char *format, va_list ap)
     if ( !logfunc )
         return;
     buffer = strdup_vprintf(format, ap);
-    (*logfunc)(loglevel, buffer);
-    free(buffer);
+    if ( NULL == buffer ) {
+        (*logfunc)(loglevel, format);
+    } else {
+        (*logfunc)(loglevel, buffer);
+        free(buffer);
+    }
 }
 
 #if defined(MAT73) && MAT73
@@ -439,7 +463,7 @@ Mat_LogClose(void)
  *
  * @ingroup mat_util
  * @param prog_name Name of the program initializing the logging functions
- * @return 0 on success
+ * @retval 0 on success
  */
 int
 Mat_LogInit(const char *prog_name)
@@ -460,7 +484,7 @@ Mat_LogInit(const char *prog_name)
  * @ingroup mat_util
  * @param prog_name Name of the program initializing the logging functions
  * @param log_func pointer to the function to do the logging
- * @return 0 on success
+ * @retval 0 on success
  */
 int
 Mat_LogInitFunc(const char *prog_name, void (*log_func)(int log_level, const char *message))
