@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2024, The matio contributors
+ * Copyright (c) 2015-2026, The matio contributors
  * Copyright (c) 2005-2014, Christopher C. Hulbert
  * All rights reserved.
  *
@@ -216,7 +216,7 @@ slab_get_select(char *open, const char *close, int rank, int *start, int *stride
 }
 
 static int
-slab_select_valid(int rank, int *start, int *stride, int *edge, matvar_t *matvar)
+slab_select_valid(int rank, int *start, const int *stride, int *edge, matvar_t *matvar)
 {
     int valid = 1, i, nmemb = 1;
 
@@ -883,7 +883,7 @@ main(int argc, char *argv[])
             case 'V':
                 printf(
                     "%s %s\nWritten by Christopher Hulbert\n\n"
-                    "Copyright(C) 2015-2024, The matio contributors\n"
+                    "Copyright(C) 2015-2026, The matio contributors\n"
                     "Copyright(C) 2006-2014, Christopher C. Hulbert\n",
                     prog_name, MATIO_VERSION_STR);
                 exit(EXIT_SUCCESS);

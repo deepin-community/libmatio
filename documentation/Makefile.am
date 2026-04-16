@@ -1,6 +1,6 @@
 ## Makefile.am -- Process this file with automake to produce Makefile.in
 ##
-## Copyright (c) 2015-2024, The matio contributors
+## Copyright (c) 2015-2026, The matio contributors
 ## Copyright (c) 2012-2014, Christopher C. Hulbert
 ## All rights reserved.
 ##
@@ -44,6 +44,7 @@ dist_man3_MANS  = \
     Mat_VarAddStructField.3 \
     Mat_VarCreate.3 \
     Mat_VarCreateStruct.3 \
+    Mat_VarCreateStruct2.3 \
     Mat_VarDelete.3 \
     Mat_VarFree.3 \
     Mat_VarGetNumberOfFields.3 \

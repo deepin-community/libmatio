@@ -2,6 +2,13 @@ if(MATIO_USE_CONAN AND (MATIO_WITH_HDF5 OR MATIO_WITH_ZLIB))
     conan_add_remote(NAME conan-center URL https://center.conan.io VERIFY_SSL False)
 endif()
 
+if(MATIO_USE_CONAN)
+    message(DEPRECATION
+        "MATIO_USE_CONAN for Conan 1.X is deprecated. "
+        "Please update your build configuration to Conan 2.X to avoid using this option."
+    )
+endif()
+
 if(MATIO_WITH_HDF5)
     if(NOT DEFINED HDF5_USE_STATIC_LIBRARIES)
         if(MATIO_SHARED)
@@ -14,7 +21,7 @@ if(MATIO_WITH_HDF5)
     if(MATIO_USE_CONAN)
         set(MATIO_CONAN_REQUIRES "hdf5/[>=1.8 <1.15]" "zlib/[>=1.2.3]")
         if(MATIO_ENABLE_CPPCHECK)
-            list(APPEND MATIO_CONAN_REQUIRES "cppcheck/[>=2.15.0]")
+            list(APPEND MATIO_CONAN_REQUIRES "cppcheck/[>=2.16.0]")
         endif()
         if(HDF5_USE_STATIC_LIBRARIES)
             conan_cmake_run(

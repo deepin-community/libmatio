@@ -1,2 +1,4 @@
-version=4
-https://sf.net/matio/matio-(\d)+\.([\d\.]+)\.tar\.gz
+Version: 5
+
+Source: https://sf.net/matio/
+Matching-Pattern: matio@ANY_VERSION@@ARCHIVE_EXT@

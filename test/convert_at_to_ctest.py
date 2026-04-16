@@ -1,4 +1,6 @@
 import glob
+import hashlib
+import json
 import os
 import re
 import sys
@@ -60,6 +62,7 @@ def convert_autotest_to_ctest(autotest_file, cmake_output_file):
                 counter = 1
                 check_copy_match = None
                 check_diff_match = None
+                mat_file_name = None
 
             elif keyword_match:
                 keywords = keyword_match.group(1).strip().split()
@@ -86,6 +89,10 @@ def convert_autotest_to_ctest(autotest_file, cmake_output_file):
                     cmakef.write(f'if({combined_conditions})\n')
                     skip_conditions = []
 
+                if 'delete' not in test_keywords and command.startswith('$<TARGET_FILE:'):
+                    mat_file_name = f'test_{test_name}_{counter}.mat'
+                    command += f' -o {mat_file_name}'
+
                 cmakef.write(f'    add_test(NAME {test_name}_{counter}\n')
                 cmakef.write(f'        COMMAND {command}\n')
                 cmakef.write('        WORKING_DIRECTORY ${MATIO_TESTING_DIR})\n')
@@ -99,15 +106,17 @@ def convert_autotest_to_ctest(autotest_file, cmake_output_file):
                     depends_str = f'{test_name}_{counter - 1}'
                     cmakef.write(f'    set_tests_properties({test_name}_{counter} PROPERTIES DEPENDS {depends_str})\n')
 
-                if 'write' in base_name or 'delete' in test_keywords:
-                    cmakef.write(f'    set_tests_properties({test_name}_{counter} PROPERTIES RUN_SERIAL ON)\n')
-
                 counter += 1
 
             elif check_copy_match and check_diff_match:
                 command = check_diff_match.group(1)
                 for original, replacement in command_mapping.items():
                     command = command.replace(original, replacement)
+
+                if 'delete' not in test_keywords and counter > 1 and mat_file_name is not None and command.startswith('$<TARGET_FILE:'):
+                    command_items = command.split(' ')
+                    command_items = [item if not item.startswith('test_') or not item.endswith('.mat') else mat_file_name for item in command_items]
+                    command = ' '.join(command_items)
 
                 output_name = f'{test_name}_{counter}_output.txt'
                 if command.startswith('$<TARGET_FILE:'):
@@ -127,29 +136,25 @@ def convert_autotest_to_ctest(autotest_file, cmake_output_file):
 
                 if test_keywords:
                     keyword_str = ';'.join(sorted(list(set(test_keywords))))
-                    cmakef.write(f'    set_tests_properties({test_name}_{counter} PROPERTIES LABELS "read;{keyword_str}")\n')
+                    cmakef.write(f'    set_tests_properties({test_name}_{counter} PROPERTIES LABELS "{keyword_str}")\n')
 
                 if counter > 1:
                     depends_str = f'{test_name}_{counter - 1}'
                     cmakef.write(f'    set_tests_properties({test_name}_{counter} PROPERTIES DEPENDS {depends_str})\n')
-
-                if 'write' in base_name or 'delete' in test_keywords:
-                    cmakef.write(f'    set_tests_properties({test_name}_{counter} PROPERTIES RUN_SERIAL ON)\n')
 
                 expected_name = check_copy_match.group(1).replace('$srcdir/', '${PROJECT_SOURCE_DIR}/test/')
                 command = f'${{CMAKE_COMMAND}} -E compare_files --ignore-eol {expected_name} {output_name}'
                 cmakef.write(f'    add_test(NAME {test_name}_{counter + 1}\n')
                 cmakef.write(f'        COMMAND {command}\n')
                 cmakef.write('        WORKING_DIRECTORY ${MATIO_TESTING_DIR})\n')
-                cmakef.write(f'    set_tests_properties({test_name}_{counter} PROPERTIES FIXTURES_REQUIRED TEMPDIR)\n')
+                cmakef.write(f'    set_tests_properties({test_name}_{counter + 1} PROPERTIES FIXTURES_REQUIRED TEMPDIR)\n')
 
                 if test_keywords:
                     keyword_str = ';'.join(sorted(list(set(test_keywords))))
                     cmakef.write(f'    set_tests_properties({test_name}_{counter + 1} PROPERTIES LABELS "diff;{keyword_str}")\n')
 
-                if counter > 1:
-                    depends_str = f'{test_name}_{counter}'
-                    cmakef.write(f'    set_tests_properties({test_name}_{counter + 1} PROPERTIES DEPENDS {depends_str})\n')
+                depends_str = f'{test_name}_{counter}'
+                cmakef.write(f'    set_tests_properties({test_name}_{counter + 1} PROPERTIES DEPENDS {depends_str})\n')
 
                 check_copy_match = None
                 check_diff_match = None
@@ -160,16 +165,42 @@ def convert_autotest_to_ctest(autotest_file, cmake_output_file):
                     cmakef.write('endif()\n')
 
 
-def generate_ctest_files(file_list, output_dir):
+def get_file_hash(file_path, algorithm='sha256'):
+    hash_obj = hashlib.new(algorithm)
+    with open(file_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_obj.update(chunk)
+    return hash_obj.hexdigest()
+
+
+def generate_ctest_files(file_list, output_dir, global_force, hash_dict):
     os.makedirs(output_dir, exist_ok=True)
 
     for autotest_file in file_list:
         base_name = os.path.splitext(os.path.basename(autotest_file))[0]
         cmake_output_file = os.path.join(output_dir, f'{base_name}.cmake')
-        if os.path.isfile(cmake_output_file):
+        hash = get_file_hash(autotest_file)
+        force = hash != hash_dict.get(base_name, '')
+        hash_dict[base_name] = hash
+        if not force and not global_force and os.path.isfile(cmake_output_file):
             continue
         convert_autotest_to_ctest(autotest_file, cmake_output_file)
 
 
 if __name__ == '__main__':
-    generate_ctest_files(file_list=glob.glob(os.path.join('tests', '*.at')), output_dir=sys.argv[1])
+    hash = get_file_hash(__file__)
+    output_dir = sys.argv[1]
+    hash_json_file = os.path.join(output_dir, 'generator.json')
+    try:
+        with open(hash_json_file, 'r') as json_file:
+            hash_dict = json.load(json_file)
+    except OSError:
+        hash_dict = {}
+
+    force = hash != hash_dict.get('generator', '')
+    hash_dict['generator'] = hash
+    hash_dict.pop('sha256', None)
+    generate_ctest_files(glob.glob(os.path.join('tests', '*.at')), output_dir, force, hash_dict)
+
+    with open(hash_json_file, 'w') as json_file:
+        json.dump(hash_dict, json_file)

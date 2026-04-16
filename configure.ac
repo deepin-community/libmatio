@@ -2,7 +2,7 @@ dnl  configure.ac
 dnl
 dnl  NOTE:  Process this file with GNU autoconf to produce a configure script.
 dnl
-dnl Copyright (c) 2015-2024, The matio contributors
+dnl Copyright (c) 2015-2026, The matio contributors
 dnl Copyright (c) 2005-2014, Christopher C. Hulbert
 dnl All rights reserved.
 dnl
@@ -27,7 +27,7 @@ dnl CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY
 dnl OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 dnl OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-AC_INIT([MATIO],[1.5.28],[t-beu@users.sourceforge.net],[],[https://sourceforge.net/projects/matio])
+AC_INIT([MATIO],[1.5.30],[t-beu@users.sourceforge.net],[],[https://sourceforge.net/projects/matio])
 AC_CONFIG_SRCDIR([src/matio.h])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([config])
@@ -39,10 +39,10 @@ AC_CANONICAL_HOST
 AC_DEFINE_UNQUOTED([MATIO_PLATFORM],"${host}",[Platform])
 AC_DEFINE_UNQUOTED([MATIO_MAJOR_VERSION],1,[Matio major version number])
 AC_DEFINE_UNQUOTED([MATIO_MINOR_VERSION],5,[Matio minor version number])
-AC_DEFINE_UNQUOTED([MATIO_RELEASE_LEVEL],28,[Matio release level number])
-AC_DEFINE_UNQUOTED([MATIO_VERSION],1528,[Matio version number])
-PACKAGE_RELEASE_DATE="30 October 2024"
-AC_DEFINE_UNQUOTED([MATIO_VERSION_STR],"1.5.28",[Matio version number])
+AC_DEFINE_UNQUOTED([MATIO_RELEASE_LEVEL],30,[Matio release level number])
+AC_DEFINE_UNQUOTED([MATIO_VERSION],1530,[Matio version number])
+PACKAGE_RELEASE_DATE="6 January 2026"
+AC_DEFINE_UNQUOTED([MATIO_VERSION_STR],"1.5.30",[Matio version number])
 AC_SUBST(PACKAGE_RELEASE_DATE)
 
 AC_ARG_VAR([FCLDFLAGS],[Fortran compiler-specific flags at link time])

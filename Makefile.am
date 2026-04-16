@@ -1,6 +1,6 @@
 ## Makefile.am -- Process this file with automake to produce Makefile.in
 ##
-## Copyright (c) 2015-2024, The matio contributors
+## Copyright (c) 2015-2026, The matio contributors
 ## Copyright (c) 2005-2014, Christopher C. Hulbert
 ## All rights reserved.
 ##
@@ -47,8 +47,10 @@ VS_FILES = visual_studio/libmatio/libmatio.vcproj \
            visual_studio/stdint_msvc.h
 
 CMAKE_FILES = CMakeLists.txt \
+              conanfile.py \
               cmake/compilerOptions.cmake \
               cmake/conan.cmake \
+              cmake/conan_provider.cmake \
               cmake/getopt.cmake \
               cmake/options.cmake \
               cmake/src.cmake \

@@ -5,7 +5,7 @@ Source: https://sourceforge.net/projects/matio/
 
 Files: *
 Copyright: 2005-2014 Christopher C. Hulbert
-           2015-2024 The matio contributors
+           2015-2026 The matio contributors
 License: BSD-2-clause
 
 Files: config/matio_off64_t.m4
@@ -13,7 +13,8 @@ Copyright: 2005-2021 Christopher C. Hulbert
 License: BSD-2-clause
 
 Files: cmake/conan.cmake
-Copyright: 2018 JFrog
+       cmake/conan_provider.cmake
+Copyright: 2018-2024 JFrog
 License: Expat
 
 Files: getopt/getopt_long.c
@@ -51,7 +52,7 @@ License: BSD-3-clause
 
 Files: debian/*
 Copyright: 2008-2013 Sylvestre Ledru <sylvestre@debian.org>
-           2013-2024 Sébastien Villemot <sebastien@debian.org>
+           2013-2026 Sébastien Villemot <sebastien@debian.org>
 License: BSD-2-clause
 
 License: BSD-2-clause
